@@ -127,6 +127,7 @@ SOFTWARE.
 
 ## Acknowledgments
 
+- Claude, the AI assistant from Anthropic, for generating most of the initial code and project structure
 - [chess.js](https://github.com/jhlywa/chess.js) for chess logic
 - [react-chessboard](https://github.com/Clariity/react-chessboard) for the chessboard UI
 - All contributors and supporters of the project
