@@ -1,13 +1,15 @@
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { Box, Button, Container, Paper, Snackbar, Typography } from '@mui/material';
+import { Box, Button, Container, Snackbar, Typography } from '@mui/material';
 import { Chess } from 'chess.js';
 import React, { useEffect, useState } from 'react';
 import ChessBoard from './components/ChessBoard';
+import GameStatus from './components/GameStatus';
 import { decodeGameState } from './utils/urlDecoder';
 import { encodeGameState } from './utils/urlEncoder';
 
 const App = () => {
   const [chess, setChess] = useState(null);
+  const [gameStatus, setGameStatus] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
@@ -28,18 +30,35 @@ const App = () => {
       newChess = new Chess();
     }
     setChess(newChess);
+    updateGameStatus(newChess);
   }, []);
+
+  const updateGameStatus = (chessInstance) => {
+    if (chessInstance.isCheckmate()) {
+      setGameStatus(`Checkmate! ${chessInstance.turn() === 'w' ? 'Black' : 'White'} wins!`);
+    } else if (chessInstance.isDraw()) {
+      setGameStatus('Draw!');
+    } else if (chessInstance.isStalemate()) {
+      setGameStatus('Stalemate!');
+    } else if (chessInstance.isThreefoldRepetition()) {
+      setGameStatus('Draw by threefold repetition!');
+    } else if (chessInstance.isInsufficientMaterial()) {
+      setGameStatus('Draw by insufficient material!');
+    } else {
+      setGameStatus(`Current turn: ${chessInstance.turn() === 'w' ? 'White' : 'Black'}`);
+    }
+  };
 
   const handleMove = (move) => {
     const newChess = new Chess(chess.fen());
     const result = newChess.move(move);
     if (result) {
       setChess(newChess);
+      updateGameStatus(newChess);
       const newEncodedState = encodeGameState(newChess);
       const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
       window.history.pushState({}, '', newUrl);
       
-      // Copy URL to clipboard
       navigator.clipboard.writeText(newUrl).then(() => {
         setSnackbarMessage('Move made! URL copied to clipboard. Share it with your opponent.');
         setShowSnackbar(true);
@@ -62,6 +81,17 @@ const App = () => {
     });
   };
 
+  const startNewGame = () => {
+    const newChess = new Chess();
+    setChess(newChess);
+    updateGameStatus(newChess);
+    const newEncodedState = encodeGameState(newChess);
+    const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
+    window.history.pushState({}, '', newUrl);
+    setSnackbarMessage('New game started! URL updated.');
+    setShowSnackbar(true);
+  };
+
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4, textAlign: 'center' }}>
@@ -75,37 +105,29 @@ const App = () => {
 
         {chess && (
           <>
-            <Paper 
-              elevation={3} 
-              sx={{ 
-                my: 2, 
-                py: 1, 
-                px: 2, 
-                display: 'inline-block', 
-                backgroundColor: chess.turn() === 'w' ? '#f5f5f5' : '#424242',
-                color: chess.turn() === 'w' ? 'black' : 'white'
-              }}
-            >
-              <Typography variant="h6">
-                Current Turn: {chess.turn() === 'w' ? 'White' : 'Black'}
-              </Typography>
-            </Paper>
+            <GameStatus status={gameStatus} />
 
             <Box sx={{ my: 4, display: 'flex', justifyContent: 'center' }}>
-              <ChessBoard fen={chess.fen()} onMove={handleMove} />
+              <ChessBoard fen={chess.fen()} onMove={handleMove} disabled={chess.isGameOver()} />
+            </Box>
+
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<ContentCopyIcon />}
+                onClick={copyUrlToClipboard}
+              >
+                Copy Game URL
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={startNewGame}
+              >
+                Start New Game
+              </Button>
             </Box>
           </>
         )}
-
-        <Box sx={{ mt: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<ContentCopyIcon />}
-            onClick={copyUrlToClipboard}
-          >
-            Copy Game URL
-          </Button>
-        </Box>
 
         <Snackbar
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
