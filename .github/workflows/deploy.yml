@@ -16,31 +16,20 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Debug - List directory contents
-        run: ls -R
-
-      - name: Debug - Print current directory
-        run: pwd
-
-      - name: Debug - Display package.json content
-        run: |
-          cd chess-game || exit 1
-          cat package.json
-
       - name: Install dependencies
         run: |
-          cd chess-game || exit 1
+          cd chess-game
           npm install
 
       - name: Build
         run: |
-          cd chess-game || exit 1
-          npm run build --verbose
+          cd chess-game
+          npm run build
 
-      - name: Debug - List build output
+      - name: Debug - List directory contents
         run: |
-          cd chess-game || exit 1
-          ls -R dist
+          cd chess-game
+          ls -R
 
       - name: Deploy
         run: |
