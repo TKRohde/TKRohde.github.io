@@ -3,5 +3,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/TKRohde.github.io/chess-game/',
+  base: '/chess-game/',
+  build: {
+    outDir: '../chess-game'
+  }
 })
