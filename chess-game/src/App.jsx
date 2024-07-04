@@ -1,5 +1,6 @@
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { Box, Button, Container, Snackbar, Typography } from '@mui/material';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import { Box, Button, Container, IconButton, Link, Snackbar, Typography } from '@mui/material';
 import { Chess } from 'chess.js';
 import React, { useEffect, useState } from 'react';
 import ChessBoard from './components/ChessBoard';
@@ -136,6 +137,17 @@ const App = () => {
           onClose={() => setShowSnackbar(false)}
           message={snackbarMessage}
         />
+      </Box>
+      <Box sx={{ mt: 4, textAlign: 'center' }}>
+        <Typography variant="body2">
+          Created by Thomas Klok Rohde - <Link href="mailto:thomas@rohde.name">thomas@rohde.name</Link>
+        </Typography>
+        <IconButton 
+          aria-label="github repository"
+          onClick={() => window.open('https://github.com/TKRohde/TKRohde.github.io', '_blank')}
+        >
+          <GitHubIcon />
+        </IconButton>
       </Box>
     </Container>
   );
