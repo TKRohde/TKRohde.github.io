@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd chess-game || exit 1
-          npm ci --verbose
+          npm ci --no-package-lock
 
       - name: Build
         run: |
