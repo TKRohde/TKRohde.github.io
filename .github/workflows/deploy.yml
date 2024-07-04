@@ -34,6 +34,11 @@ jobs:
           cd chess-game
           npm run build
 
+      - name: List build directory contents
+        run: |
+          cd chess-game/dist
+          ls -R
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

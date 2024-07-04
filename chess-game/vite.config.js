@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/chess-game/',
+  base: '/TKRohde.github.io/',  
   build: {
     outDir: 'dist',
     emptyOutDir: true,

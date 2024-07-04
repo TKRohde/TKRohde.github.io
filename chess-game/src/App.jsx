@@ -24,7 +24,7 @@ const App = () => {
         newChess = decodedChess;
       } catch (error) {
         console.error('Error decoding game state:', error);
-        newChess = new Chess(); // Fallback to a new game
+        newChess = new Chess(); 
       }
     } else {
       newChess = new Chess();
