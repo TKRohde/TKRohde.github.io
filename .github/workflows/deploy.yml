@@ -16,20 +16,31 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Debug - List directory contents
+        run: ls -R
+
+      - name: Debug - Print current directory
+        run: pwd
+
       - name: Install dependencies
         run: |
-          cd chess-game
+          cd chess-game || exit 1
           npm ci
 
       - name: Build
         run: |
-          cd chess-game
+          cd chess-game || exit 1
           npm run build
+
+      - name: Debug - List build output
+        run: |
+          cd chess-game || exit 1
+          ls -R dist
 
       - name: Deploy
         run: |
           git config --global user.name github-actions
           git config --global user.email github-actions@github.com
           git add .
-          git commit -m "Deploy chess game"
+          git commit -m "Deploy chess game" || echo "No changes to commit"
           git push
