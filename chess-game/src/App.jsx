@@ -100,7 +100,7 @@ const App = () => {
         </Typography>
         
         <Typography variant="body1" gutterBottom>
-          Make your move on the board below. After each move, a new URL will be generated and copied to your clipboard. Share this URL with your opponent to continue the game!
+          Make your move on the board below. After each move, a new URL will be generated and copied to your clipboard. Share this URL with your opponent, or tweet it, to continue the game!
         </Typography>
 
         {chess && (
