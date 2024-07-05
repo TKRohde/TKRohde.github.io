@@ -1,29 +1,45 @@
+import BarChartIcon from '@mui/icons-material/BarChart';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import GamesIcon from '@mui/icons-material/Games';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import InfoIcon from '@mui/icons-material/Info';
+import MenuIcon from '@mui/icons-material/Menu';
 import {
+  AppBar,
   Box,
   Button,
   Container,
   CssBaseline,
+  Drawer,
   IconButton,
   Link,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Snackbar,
+  Toolbar,
   Typography
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
-
 import { collection, getDocs } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import { Route, BrowserRouter as Router, Link as RouterLink, Routes } from 'react-router-dom';
+import About from './components/About';
 import ChessBoard from './components/ChessBoard';
 import GameStatus from './components/GameStatus';
+import Games from './components/Games';
+import Stats from './components/Stats';
 import { db } from './firebaseConfig';
 import { decodeGameState } from './utils/urlDecoder';
 import { encodeGameState } from './utils/urlEncoder';
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
+const drawerWidth = 240;
 
 function App() {
   const theme = useTheme();
@@ -35,6 +51,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const [boardDisabled, setBoardDisabled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -137,7 +154,15 @@ function App() {
     testFirebase();
   }, []);
 
-  return (
+  const handleDrawerOpen = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+  };
+
+  const ChessGameContent = () => (
     <Container maxWidth="md">
       <Box sx={{ my: 4, textAlign: 'center' }}>
         <Typography variant="h2" component="h1" gutterBottom sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
@@ -162,17 +187,7 @@ function App() {
         >
           {theme.palette.mode} mode
           <IconButton
-            sx={{
-              ml: 1,
-              userSelect: 'none',
-              '&:focus': {
-                outline: 'none',
-              },
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-            }}
-            disableRipple
+            sx={{ ml: 1 }}
             onClick={colorMode.toggleColorMode}
             color="inherit"
           >
@@ -212,14 +227,6 @@ function App() {
             </Box>
           </>
         )}
-
-        <Snackbar
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          open={showSnackbar}
-          autoHideDuration={6000}
-          onClose={() => setShowSnackbar(false)}
-          message={snackbarMessage}
-        />
       </Box>
       <Box sx={{ mt: 4, textAlign: 'center' }}>
         <Typography variant="body2">
@@ -233,6 +240,79 @@ function App() {
         </IconButton>
       </Box>
     </Container>
+  );
+
+  return (
+    <Router>
+      <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              edge="start"
+              sx={{ mr: 2, ...(drawerOpen && { display: 'none' }) }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div">
+              Chess Anywhere
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+            },
+          }}
+          variant="persistent"
+          anchor="left"
+          open={drawerOpen}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
+            <IconButton onClick={handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </Box>
+          <List>
+            {[
+              { text: 'Home', icon: <GamesIcon />, path: '/' },
+              { text: 'Games', icon: <GamesIcon />, path: '/games' },
+              { text: 'Stats', icon: <BarChartIcon />, path: '/stats' },
+              { text: 'About', icon: <InfoIcon />, path: '/about' }
+            ].map((item) => (
+              <ListItem button key={item.text} component={RouterLink} to={item.path} onClick={handleDrawerClose}>
+                <ListItemIcon>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            ))}
+          </List>
+        </Drawer>
+        <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+          <Routes>
+            <Route path="/" element={<ChessGameContent />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/stats" element={<Stats />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </Box>
+      </Box>
+      <Snackbar
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={showSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setShowSnackbar(false)}
+        message={snackbarMessage}
+      />
+    </Router>
   );
 }
 
