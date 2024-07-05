@@ -14,9 +14,12 @@ import {
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
+
+import { collection, getDocs } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import ChessBoard from './components/ChessBoard';
 import GameStatus from './components/GameStatus';
+import { db } from './firebaseConfig';
 import { decodeGameState } from './utils/urlDecoder';
 import { encodeGameState } from './utils/urlEncoder';
 
@@ -29,6 +32,9 @@ function App() {
   const [gameStatus, setGameStatus] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState(null);
+  const [boardDisabled, setBoardDisabled] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -48,19 +54,25 @@ function App() {
     }
     setChess(newChess);
     updateGameStatus(newChess);
+    setBoardDisabled(newChess.isGameOver());
   }, []);
 
   const updateGameStatus = (chessInstance) => {
     if (chessInstance.isCheckmate()) {
       setGameStatus(`Checkmate! ${chessInstance.turn() === 'w' ? 'Black' : 'White'} wins!`);
+      setBoardDisabled(true);
     } else if (chessInstance.isDraw()) {
       setGameStatus('Draw!');
+      setBoardDisabled(true);
     } else if (chessInstance.isStalemate()) {
       setGameStatus('Stalemate!');
+      setBoardDisabled(true);
     } else if (chessInstance.isThreefoldRepetition()) {
       setGameStatus('Draw by threefold repetition!');
+      setBoardDisabled(true);
     } else if (chessInstance.isInsufficientMaterial()) {
       setGameStatus('Draw by insufficient material!');
+      setBoardDisabled(true);
     } else {
       setGameStatus(`Current turn: ${chessInstance.turn() === 'w' ? 'White' : 'Black'}`);
     }
@@ -75,6 +87,7 @@ function App() {
       const newEncodedState = encodeGameState(newChess);
       const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
       window.history.pushState({}, '', newUrl);
+      setBoardDisabled(true);  // Disable the board after a move
 
       navigator.clipboard.writeText(newUrl).then(() => {
         setSnackbarMessage('Move made! URL copied to clipboard. Share it with your opponent.');
@@ -108,6 +121,21 @@ function App() {
     setSnackbarMessage('New game started! URL updated.');
     setShowSnackbar(true);
   };
+
+  useEffect(() => {
+    const testFirebase = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'games'));
+        console.log('Successfully connected to Firestore. Number of documents:', querySnapshot.size);
+        setIsConnected(true);
+      } catch (error) {
+        console.error('Error connecting to Firestore:', error);
+        setError(error.message);
+      }
+    };
+
+    testFirebase();
+  }, []);
 
   return (
     <Container maxWidth="md">
@@ -160,7 +188,7 @@ function App() {
               <ChessBoard
                 fen={chess.fen()}
                 onMove={handleMove}
-                disabled={chess.isGameOver()}
+                disabled={boardDisabled}
                 darkMode={theme.palette.mode === 'dark'}
               />
             </Box>
