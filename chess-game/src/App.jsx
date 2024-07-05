@@ -1,26 +1,10 @@
-import BarChartIcon from '@mui/icons-material/BarChart';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import GamesIcon from '@mui/icons-material/Games';
-import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
   AppBar,
   Box,
-  Button,
   CssBaseline,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Drawer,
   IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Snackbar,
-  TextField,
   Toolbar,
   Typography
 } from '@mui/material';
@@ -28,17 +12,18 @@ import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
 import { collection, getDocs } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Route, BrowserRouter as Router, Link as RouterLink, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import About from './components/About';
 import ChessGameContent from './components/ChessGameContent';
+import DrawerMenu from './components/DrawerMenu';
 import Games from './components/Games';
+import ShareGameDialog from './components/ShareGameDialog';
 import Stats from './components/Stats';
 import { db } from './firebaseConfig';
 import { decodeGameState } from './utils/urlDecoder';
 import { encodeGameState } from './utils/urlEncoder';
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
-const drawerWidth = 240;
 
 function App() {
   const theme = useTheme();
@@ -212,40 +197,7 @@ function App() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <Drawer
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-            },
-          }}
-          variant="persistent"
-          anchor="left"
-          open={drawerOpen}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
-            <IconButton onClick={handleDrawerClose}>
-              <ChevronLeftIcon />
-            </IconButton>
-          </Box>
-          <List>
-            {[
-              { text: 'Home', icon: <GamesIcon />, path: '/' },
-              { text: 'Games', icon: <GamesIcon />, path: '/games' },
-              { text: 'Stats', icon: <BarChartIcon />, path: '/stats' },
-              { text: 'About', icon: <InfoIcon />, path: '/about' }
-            ].map((item) => (
-              <ListItem button key={item.text} component={RouterLink} to={item.path} onClick={handleDrawerClose}>
-                <ListItemIcon>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItem>
-            ))}
-          </List>
-        </Drawer>
+        <DrawerMenu open={drawerOpen} handleDrawerClose={handleDrawerClose} />
         <Box component="main" sx={{
           flexGrow: 1,
           p: 3,
@@ -289,31 +241,13 @@ function App() {
         onClose={() => setShowSnackbar(false)}
         message={snackbarMessage}
       />
-      <Dialog open={openDialog} onClose={handleDialogClose}>
-        <DialogTitle>Share Your Game</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Enter your nickname and choose how you'd like to share your game.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="nickname"
-            label="Nickname (e.g., Twitter handle)"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>OK (Copy URL)</Button>
-          <Button onClick={handleTweet} >
-            Tweet
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ShareGameDialog
+        open={openDialog}
+        onClose={handleDialogClose}
+        nickname={nickname}
+        onNicknameChange={setNickname}
+        onTweet={handleTweet}
+      />
     </Router>
   );
 }
