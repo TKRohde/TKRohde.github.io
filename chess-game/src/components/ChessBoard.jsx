@@ -1,8 +1,9 @@
+import { Box } from '@mui/material';
 import { Chess } from 'chess.js';
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
 
-const ChessBoard = ({ fen, onMove, disabled }) => {
+const ChessBoard = ({ fen, onMove, disabled, darkMode }) => {
   const game = new Chess(fen);
 
   const onDrop = (sourceSquare, targetSquare) => {
@@ -27,15 +28,23 @@ const ChessBoard = ({ fen, onMove, disabled }) => {
   };
 
   return (
-    <div style={{ width: '400px', margin: 'auto' }}>
+    <Box
+      sx={{
+        width: '100%',
+        maxWidth: '400px',
+        margin: 'auto',
+      }}
+    >
       <Chessboard 
         position={fen} 
         onPieceDrop={onDrop}
         boardWidth={400}
         areArrowsAllowed={true}
         showBoardNotation={true}
+        customDarkSquareStyle={{ backgroundColor: darkMode ? '#769656' : '#b58863' }}
+        customLightSquareStyle={{ backgroundColor: darkMode ? '#eeeed2' : '#f0d9b5' }}
       />
-    </div>
+    </Box>
   );
 };
 

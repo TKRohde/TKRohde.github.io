@@ -11,7 +11,6 @@ import {
   AppBar,
   Box,
   Button,
-  Container,
   CssBaseline,
   Drawer,
   IconButton,
@@ -27,7 +26,7 @@ import {
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
 import { collection, getDocs } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Route, BrowserRouter as Router, Link as RouterLink, Routes } from 'react-router-dom';
 import About from './components/About';
 import ChessBoard from './components/ChessBoard';
@@ -52,6 +51,22 @@ function App() {
   const [error, setError] = useState(null);
   const [boardDisabled, setBoardDisabled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  const handleResize = useCallback(() => {
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -163,13 +178,31 @@ function App() {
   };
 
   const ChessGameContent = () => (
-    <Container maxWidth="md">
-      <Box sx={{ my: 4, textAlign: 'center' }}>
-        <Typography variant="h2" component="h1" gutterBottom sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      minHeight: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
+      width: '100%',
+      px: 2,
+      boxSizing: 'border-box',
+    }}>
+      <Box sx={{ 
+        maxWidth: 'md', 
+        width: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center'
+      }}>
+        <Typography variant="h2" component="h1" gutterBottom sx={{ 
+          fontSize: { xs: '2rem', sm: '3rem' },
+          textAlign: 'center'
+        }}>
           Chess Anywhere: The URL-Encoded Chess Game
         </Typography>
 
-        <Typography variant="body1" gutterBottom>
+        <Typography variant="body1" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
           Make your move on the board below. After each move, a new URL will be generated and copied to your clipboard. Share this URL with your opponent, or tweet it, to continue the game!
         </Typography>
 
@@ -183,6 +216,7 @@ function App() {
             color: 'text.primary',
             borderRadius: 1,
             p: 3,
+            mb: 3
           }}
         >
           {theme.palette.mode} mode
@@ -199,7 +233,7 @@ function App() {
           <>
             <GameStatus status={gameStatus} />
 
-            <Box sx={{ my: 4, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ my: 4, display: 'flex', justifyContent: 'center', width: '100%' }}>
               <ChessBoard
                 fen={chess.fen()}
                 onMove={handleMove}
@@ -208,7 +242,15 @@ function App() {
               />
             </Box>
 
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'center', gap: 2 }}>
+            <Box sx={{ 
+              mt: 2, 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              justifyContent: 'center', 
+              gap: 2,
+              width: '100%',
+              maxWidth: '400px' // Match the chessboard width
+            }}>
               <Button
                 variant="contained"
                 startIcon={<ContentCopyIcon />}
@@ -239,7 +281,7 @@ function App() {
           <GitHubIcon />
         </IconButton>
       </Box>
-    </Container>
+    </Box>
   );
 
   return (
@@ -296,7 +338,17 @@ function App() {
             ))}
           </List>
         </Drawer>
-        <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+        <Box component="main" sx={{ 
+          flexGrow: 1, 
+          p: 3, 
+          width: `calc(100% - ${drawerOpen ? drawerWidth : 0}px)`,
+          marginLeft: drawerOpen ? `${drawerWidth}px` : 0,
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+        }}>
+          <Toolbar /> {/* This toolbar is for spacing, pushing content below the AppBar */}
           <Routes>
             <Route path="/" element={<ChessGameContent />} />
             <Route path="/games" element={<Games />} />
@@ -316,7 +368,7 @@ function App() {
   );
 }
 
-export default function ToggleColorMode() {
+function ToggleColorMode() {
   const [mode, setMode] = React.useState('dark');
   const colorMode = React.useMemo(
     () => ({
@@ -346,3 +398,5 @@ export default function ToggleColorMode() {
     </ColorModeContext.Provider>
   );
 }
+
+export default ToggleColorMode;
