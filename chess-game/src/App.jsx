@@ -12,6 +12,11 @@ import {
   Box,
   Button,
   CssBaseline,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Drawer,
   IconButton,
   Link,
@@ -20,6 +25,7 @@ import {
   ListItemIcon,
   ListItemText,
   Snackbar,
+  TextField,
   Toolbar,
   Typography
 } from '@mui/material';
@@ -55,6 +61,9 @@ function App() {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [openDialog, setOpenDialog] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [gameUrl, setGameUrl] = useState('');
 
   const handleResize = useCallback(() => {
     setWindowSize({
@@ -119,16 +128,9 @@ function App() {
       const newEncodedState = encodeGameState(newChess);
       const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
       window.history.pushState({}, '', newUrl);
-      setBoardDisabled(true);  // Disable the board after a move
-
-      navigator.clipboard.writeText(newUrl).then(() => {
-        setSnackbarMessage('Move made! URL copied to clipboard. Share it with your opponent.');
-        setShowSnackbar(true);
-      }, (err) => {
-        console.error('Could not copy URL: ', err);
-        setSnackbarMessage('Move made! Please copy the URL to share with your opponent.');
-        setShowSnackbar(true);
-      });
+      setBoardDisabled(true);
+      setGameUrl(newUrl);
+      setOpenDialog(true);
     }
   };
 
@@ -150,8 +152,27 @@ function App() {
     const newEncodedState = encodeGameState(newChess);
     const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
     window.history.pushState({}, '', newUrl);
-    setSnackbarMessage('New game started! URL updated.');
-    setShowSnackbar(true);
+    setGameUrl(newUrl);
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+    setNickname('');
+    navigator.clipboard.writeText(gameUrl).then(() => {
+      setSnackbarMessage('Game URL copied to clipboard!');
+      setShowSnackbar(true);
+    }, (err) => {
+      console.error('Could not copy URL: ', err);
+      setSnackbarMessage('Failed to copy URL. Please copy it manually.');
+      setShowSnackbar(true);
+    });
+  };
+
+  const handleTweet = () => {
+    const tweetText = encodeURIComponent(`I'm playing Chess Anywhere! Join my game: ${gameUrl} (My nickname: ${nickname})`);
+    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+    handleDialogClose();
   };
 
   useEffect(() => {
@@ -365,6 +386,31 @@ function App() {
         onClose={() => setShowSnackbar(false)}
         message={snackbarMessage}
       />
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>Share Your Game</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter your nickname and choose how you'd like to share your game.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="nickname"
+            label="Nickname (e.g., Twitter handle)"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>OK (Copy URL)</Button>
+          <Button onClick={handleTweet} >
+            Tweet
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Router>
   );
 }

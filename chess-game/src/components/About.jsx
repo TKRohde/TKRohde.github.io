@@ -4,7 +4,9 @@ import HistoryIcon from '@mui/icons-material/History';
 import LinkIcon from '@mui/icons-material/Link';
 import PeopleIcon from '@mui/icons-material/People';
 import SecurityIcon from '@mui/icons-material/Security';
-import { Box, List, ListItem, ListItemIcon, ListItemText, Paper, Typography } from '@mui/material';
+import {
+    Box, List, ListItem, ListItemIcon, ListItemText, Paper, Typography
+} from '@mui/material';
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
