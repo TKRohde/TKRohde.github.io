@@ -1,10 +1,6 @@
 import BarChartIcon from '@mui/icons-material/BarChart';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import GamesIcon from '@mui/icons-material/Games';
-import GitHubIcon from '@mui/icons-material/GitHub';
 import InfoIcon from '@mui/icons-material/Info';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
@@ -19,7 +15,6 @@ import {
   DialogTitle,
   Drawer,
   IconButton,
-  Link,
   List,
   ListItem,
   ListItemIcon,
@@ -35,8 +30,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Route, BrowserRouter as Router, Link as RouterLink, Routes } from 'react-router-dom';
 import About from './components/About';
-import ChessBoard from './components/ChessBoard';
-import GameStatus from './components/GameStatus';
+import ChessGameContent from './components/ChessGameContent';
 import Games from './components/Games';
 import Stats from './components/Stats';
 import { db } from './firebaseConfig';
@@ -198,108 +192,6 @@ function App() {
     setDrawerOpen(false);
   };
 
-  const ChessGameContent = () => (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      minHeight: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
-      width: '100%',
-      maxWidth: 'md',
-      mx: 'auto',
-      px: 2,
-      boxSizing: 'border-box',
-    }}>
-      <Typography variant="h2" component="h1" gutterBottom sx={{ 
-        fontSize: { xs: '2rem', sm: '3rem' },
-        textAlign: 'center'
-      }}>
-        Chess Anywhere: The URL-Encoded Chess Game
-      </Typography>
-
-      <Typography variant="body1" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
-        Make your move on the board below. After each move, a new URL will be generated and copied to your clipboard. Share this URL with your opponent, or tweet it, to continue the game!
-      </Typography>
-
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: 'background.default',
-          color: 'text.primary',
-          borderRadius: 1,
-          p: 3,
-          mb: 3
-        }}
-      >
-        {theme.palette.mode} mode
-        <IconButton
-          sx={{ ml: 1 }}
-          onClick={colorMode.toggleColorMode}
-          color="inherit"
-        >
-          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </Box>
-
-      {chess && (
-        <>
-          <GameStatus status={gameStatus} />
-
-          <Box sx={{ my: 4, display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <ChessBoard
-              fen={chess.fen()}
-              onMove={handleMove}
-              disabled={boardDisabled}
-              darkMode={theme.palette.mode === 'dark'}
-            />
-          </Box>
-
-          <Box sx={{ 
-            mt: 2, 
-            display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' }, 
-            justifyContent: 'center', 
-            gap: 2,
-            width: '100%',
-            maxWidth: '400px'
-          }}>
-            <Button
-              variant="contained"
-              startIcon={<ContentCopyIcon />}
-              onClick={copyUrlToClipboard}
-              fullWidth
-            >
-              Copy Game URL
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={startNewGame}
-              fullWidth
-            >
-              Start New Game
-            </Button>
-          </Box>
-        </>
-      )}
-
-      <Box sx={{ mt: 4, textAlign: 'center' }}>
-        <Typography variant="body2">
-          Created by Thomas Klok Rohde - <Link href="mailto:thomas@rohde.name">thomas@rohde.name</Link>
-        </Typography>
-        <IconButton
-          aria-label="github repository"
-          onClick={() => window.open('https://github.com/TKRohde/TKRohde.github.io', '_blank')}
-        >
-          <GitHubIcon />
-        </IconButton>
-      </Box>
-    </Box>
-  );
-
   return (
     <Router>
       <Box sx={{ display: 'flex' }}>
@@ -354,9 +246,9 @@ function App() {
             ))}
           </List>
         </Drawer>
-        <Box component="main" sx={{ 
-          flexGrow: 1, 
-          p: 3, 
+        <Box component="main" sx={{
+          flexGrow: 1,
+          p: 3,
           width: '100%',
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
@@ -371,7 +263,18 @@ function App() {
             width: '100%',
           }}>
             <Routes>
-              <Route path="/" element={<ChessGameContent />} />
+              <Route path="/" element={
+                <ChessGameContent
+                  theme={theme}
+                  colorMode={colorMode}
+                  chess={chess}
+                  gameStatus={gameStatus}
+                  handleMove={handleMove}
+                  boardDisabled={boardDisabled}
+                  copyUrlToClipboard={copyUrlToClipboard}
+                  startNewGame={startNewGame}
+                />
+              } />
               <Route path="/games" element={<Games />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/about" element={<About />} />
