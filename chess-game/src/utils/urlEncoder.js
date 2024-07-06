@@ -1,30 +1,10 @@
-import { Chess } from 'chess.js';
+import { v4 as uuidv4 } from 'uuid';
 
-function generateGameId() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+export function generateId() {
+  return uuidv4().slice(0, 6);
 }
 
-export function encodeGameState(chess) {
-  if (!(chess instanceof Chess)) {
-    throw new Error('Invalid chess instance');
-  }
-
-  const gameId = generateGameId();
-  const fen = chess.fen();
-  const isGameOver = chess.isGameOver() ? '1' : '0';
-  const gameStatus = chess.isCheckmate() ? 'c' : 
-                     chess.isDraw() ? 'd' :
-                     chess.isStalemate() ? 's' :
-                     chess.isThreefoldRepetition() ? 't' :
-                     chess.isInsufficientMaterial() ? 'i' : 'o'; // 'o' for ongoing
-  
-  // URL-safe Base64 encoding
+export function encodeGameState(gameId, moveId, fen) {
   const encodedFen = btoa(fen).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-  
-  return `${gameId}${encodedFen}${isGameOver}${gameStatus}`;
+  return `${gameId}${moveId}${encodedFen}`;
 }

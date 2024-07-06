@@ -10,8 +10,8 @@ import {
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
-import { collection, getDocs } from 'firebase/firestore';
-import React, { useCallback, useEffect, useState } from 'react';
+import { collection, doc, getDocs, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import About from './components/About';
 import ChessGameContent from './components/ChessGameContent';
@@ -21,7 +21,7 @@ import ShareGameDialog from './components/ShareGameDialog';
 import Stats from './components/Stats';
 import { db } from './firebaseConfig';
 import { decodeGameState } from './utils/urlDecoder';
-import { encodeGameState } from './utils/urlEncoder';
+import { encodeGameState, generateId } from './utils/urlEncoder';
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
@@ -29,6 +29,8 @@ function App() {
   const theme = useTheme();
   const colorMode = React.useContext(ColorModeContext);
   const [chess, setChess] = useState(null);
+  const [gameId, setGameId] = useState(null);
+  const [moveId, setMoveId] = useState(null);
   const [gameStatus, setGameStatus] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -43,6 +45,9 @@ function App() {
   const [openDialog, setOpenDialog] = useState(false);
   const [nickname, setNickname] = useState('');
   const [gameUrl, setGameUrl] = useState('');
+  const [pendingMove, setPendingMove] = useState(null);
+  const [isNewGame, setIsNewGame] = useState(false);
+  const initializationRef = useRef(false);
 
   const handleResize = useCallback(() => {
     setWindowSize({
@@ -57,24 +62,28 @@ function App() {
   }, [handleResize]);
 
   useEffect(() => {
+    if (initializationRef.current) return; // Skip if already initialized
+    initializationRef.current = true;
+
     const urlParams = new URLSearchParams(window.location.search);
     const encodedState = urlParams.get('game');
 
-    let newChess;
     if (encodedState) {
       try {
-        const { chess: decodedChess } = decodeGameState(encodedState);
-        newChess = decodedChess;
+        const { gameId, moveId, fen } = decodeGameState(encodedState);
+        const newChess = new Chess(fen);
+        setChess(newChess);
+        setGameId(gameId);
+        setMoveId(moveId);
+        updateGameStatus(newChess);
+        setBoardDisabled(newChess.isGameOver());
       } catch (error) {
         console.error('Error decoding game state:', error);
-        newChess = new Chess();
+        initializeNewGame(false);
       }
     } else {
-      newChess = new Chess();
+      initializeNewGame(false);
     }
-    setChess(newChess);
-    updateGameStatus(newChess);
-    setBoardDisabled(newChess.isGameOver());
   }, []);
 
   const updateGameStatus = (chessInstance) => {
@@ -98,46 +107,102 @@ function App() {
     }
   };
 
+  const initializeNewGame = async (promptForNickname = false) => {
+    const newChess = new Chess();
+    const newGameId = generateId();
+    const newMoveId = generateId();
+
+    setChess(newChess);
+    setGameId(newGameId);
+    setMoveId(newMoveId);
+    updateGameStatus(newChess);
+    setBoardDisabled(false);
+
+    try {
+      await setDoc(doc(db, 'games', newGameId), {
+        startPosition: newChess.fen(),
+        createdAt: serverTimestamp(),
+        moves: {
+          [newMoveId]: {
+            fen: newChess.fen(),
+            move: null,
+            timestamp: serverTimestamp(),
+            parentMoveId: null
+          }
+        }
+      });
+
+      const newEncodedState = encodeGameState(newGameId, newMoveId, newChess.fen());
+      const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
+      window.history.pushState({}, '', newUrl);
+      setGameUrl(newUrl);
+      
+      if (promptForNickname) {
+        setIsNewGame(true);
+        setOpenDialog(true);
+      }
+    } catch (error) {
+      console.error('Error initializing new game:', error);
+      setSnackbarMessage('Failed to create a new game. Please try again.');
+      setShowSnackbar(true);
+    }
+  };
+
+  const startNewGame = () => {
+    initializeNewGame(true);
+  };
+
   const handleMove = (move) => {
     const newChess = new Chess(chess.fen());
     const result = newChess.move(move);
     if (result) {
-      setChess(newChess);
-      updateGameStatus(newChess);
-      const newEncodedState = encodeGameState(newChess);
-      const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
-      window.history.pushState({}, '', newUrl);
-      setBoardDisabled(true);
-      setGameUrl(newUrl);
+      setPendingMove({ chess: newChess, move });
+      setIsNewGame(false);
       setOpenDialog(true);
     }
   };
 
-  const copyUrlToClipboard = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setSnackbarMessage('URL copied to clipboard!');
-      setShowSnackbar(true);
-    }, (err) => {
-      console.error('Could not copy URL: ', err);
-      setSnackbarMessage('Failed to copy URL. Please copy it manually.');
-      setShowSnackbar(true);
-    });
-  };
+  const handleDialogClose = async () => {
+    if (pendingMove || isNewGame) {
+      if (pendingMove) {
+        const { chess: newChess, move } = pendingMove;
+        const newMoveId = generateId();
 
-  const startNewGame = () => {
-    const newChess = new Chess();
-    setChess(newChess);
-    updateGameStatus(newChess);
-    const newEncodedState = encodeGameState(newChess);
-    const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
-    window.history.pushState({}, '', newUrl);
-    setGameUrl(newUrl);
-    setOpenDialog(true);
-  };
+        setChess(newChess);
+        setMoveId(newMoveId);
+        updateGameStatus(newChess);
+        setBoardDisabled(newChess.isGameOver());
 
-  const handleDialogClose = () => {
+        // Update Firebase
+        const gameRef = doc(db, 'games', gameId);
+        await updateDoc(gameRef, {
+          [`moves.${newMoveId}`]: {
+            fen: newChess.fen(),
+            move: move,
+            timestamp: serverTimestamp(),
+            parentMoveId: moveId,
+            nickname: nickname || 'Anonymous'
+          }
+        });
+
+        const newEncodedState = encodeGameState(gameId, newMoveId, newChess.fen());
+        const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
+        window.history.pushState({}, '', newUrl);
+        setGameUrl(newUrl);
+
+        if (newChess.isGameOver()) {
+          handleGameOver(newChess, gameId, newMoveId);
+        }
+
+        setPendingMove(null);
+      }
+
+      setIsNewGame(false);
+    }
+
     setOpenDialog(false);
     setNickname('');
+
     navigator.clipboard.writeText(gameUrl).then(() => {
       setSnackbarMessage('Game URL copied to clipboard!');
       setShowSnackbar(true);
@@ -152,6 +217,27 @@ function App() {
     const tweetText = encodeURIComponent(`I'm playing Chess Anywhere! Join my game: ${gameUrl} (My nickname: ${nickname})`);
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
     handleDialogClose();
+  };
+
+  const handleGameOver = async (chess, gameId, moveId) => {
+    await updateDoc(doc(db, 'games', gameId), {
+      [`moves.${moveId}.isEndGame`]: true,
+      [`moves.${moveId}.winner`]: chess.turn() === 'w' ? 'black' : 'white'
+    });
+
+    setSnackbarMessage('Game over! The result has been recorded.');
+    setShowSnackbar(true);
+  };
+
+  const copyUrlToClipboard = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setSnackbarMessage('URL copied to clipboard!');
+      setShowSnackbar(true);
+    }, (err) => {
+      console.error('Could not copy URL: ', err);
+      setSnackbarMessage('Failed to copy URL. Please copy it manually.');
+      setShowSnackbar(true);
+    });
   };
 
   useEffect(() => {
@@ -247,6 +333,7 @@ function App() {
         nickname={nickname}
         onNicknameChange={setNickname}
         onTweet={handleTweet}
+        isNewGame={isNewGame}
       />
     </Router>
   );

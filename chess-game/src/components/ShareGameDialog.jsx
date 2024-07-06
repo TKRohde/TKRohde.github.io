@@ -1,21 +1,24 @@
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    TextField
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField
 } from '@mui/material';
 import React from 'react';
 
-const ShareGameDialog = ({ open, onClose, nickname, onNicknameChange, onTweet }) => {
+const ShareGameDialog = ({ open, onClose, nickname, onNicknameChange, onTweet, isNewGame }) => {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Share Your Game</DialogTitle>
+      <DialogTitle>{isNewGame ? 'New Game Started' : 'Share Your Move'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Enter your nickname and choose how you'd like to share your game.
+          {isNewGame 
+            ? "You've started a new game! Enter your nickname and share the game."
+            : "You've made a move! Enter your nickname and share the updated game state."
+          }
         </DialogContentText>
         <TextField
           autoFocus
