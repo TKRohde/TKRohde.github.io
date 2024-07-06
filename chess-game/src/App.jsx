@@ -243,8 +243,6 @@ function App() {
   useEffect(() => {
     const testFirebase = async () => {
       try {
-        console.log('Firebase config:', firebaseConfig);
-        console.log('Firestore instance:', db);
         const querySnapshot = await getDocs(collection(db, 'games'));
         console.log('Successfully connected to Firestore. Number of documents:', querySnapshot.size);
         setIsConnected(true);
