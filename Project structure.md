@@ -1,0 +1,53 @@
+﻿# Project Structure: TKRohde.github.io
+
+
+- TKRohde.github.io/
+  - .gitignore
+  - dirstruct.ps1
+  - index.html
+  - Project structure.md
+  - .git/
+  - .github/
+    - workflows/
+      - deploy.yml
+  - chess-game/
+    - .env.development
+    - .env.production
+    - .eslintrc.cjs
+    - .gitignore
+    - game-state-management-doc.md
+    - index.html
+    - package.json
+    - package-lock.json
+    - README.md
+    - Strategy.md
+    - vite.config.js
+    - winning.cjs
+    - dist/
+    - node_modules/
+    - public/
+      - icons8-chess-glyph-neue-16.png
+      - icons8-chess-glyph-neue-32.png
+      - icons8-chess-glyph-neue-96.png
+      - vite.svg
+    - src/
+      - App.css
+      - App.jsx
+      - firebaseConfig.js
+      - index.css
+      - main.jsx
+      - assets/
+        - react.svg
+      - components/
+        - About.jsx
+        - ChessBoard.jsx
+        - ChessGameContent.jsx
+        - DrawerMenu.jsx
+        - Games.jsx
+        - GameStatus.jsx
+        - ShareGameDialog.jsx
+        - Stats.jsx
+      - utils/
+        - urlDecoder.js
+        - urlEncoder.js
+

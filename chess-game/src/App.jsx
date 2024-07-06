@@ -16,6 +16,7 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import About from './components/About';
 import ChessGameContent from './components/ChessGameContent';
 import DrawerMenu from './components/DrawerMenu';
+import GameTree from './components/GameTree';
 import Games from './components/Games';
 import ShareGameDialog from './components/ShareGameDialog';
 import Stats from './components/Stats';
@@ -316,6 +317,7 @@ function App() {
               <Route path="/games" element={<Games />} />
               <Route path="/stats" element={<Stats />} />
               <Route path="/about" element={<About />} />
+              <Route path="/game/:gameId" element={<GameTree />} />
             </Routes>
           </Box>
         </Box>
