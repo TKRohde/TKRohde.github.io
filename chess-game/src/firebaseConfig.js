@@ -13,6 +13,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+console.log('Firebase config executed')
 console.log('Firebase config:', firebaseConfig);
 console.log('Firebase app initialized:', app);
 console.log('Firestore instance:', db);
