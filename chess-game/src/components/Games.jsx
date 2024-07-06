@@ -1,8 +1,10 @@
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
   Paper,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -15,12 +17,15 @@ import { collection, getDocs, limit, orderBy, query, startAfter } from 'firebase
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebaseConfig';
+import generateSampleGames from '../sampleGamesGenerator';
 
 const Games = () => {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [lastVisible, setLastVisible] = useState(null);
   const [hasMore, setHasMore] = useState(true);
+  const [generatingSamples, setGeneratingSamples] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   const fetchGames = async (startAfterDoc = null) => {
     setLoading(true);
@@ -46,6 +51,7 @@ const Games = () => {
       setHasMore(querySnapshot.docs.length === 10);
     } catch (error) {
       console.error("Error fetching games:", error);
+      setSnackbar({ open: true, message: `Error fetching games: ${error.message}`, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -58,6 +64,23 @@ const Games = () => {
   const loadMore = () => {
     if (lastVisible) {
       fetchGames(lastVisible);
+    }
+  };
+
+  const handleGenerateSampleGames = async () => {
+    setGeneratingSamples(true);
+    setSnackbar({ open: true, message: 'Generating sample games...', severity: 'info' });
+    try {
+      console.log('Starting sample game generation...');
+      const generatedGames = await generateSampleGames(5); // Generate 5 sample games
+      console.log(`Sample games generated: ${generatedGames.join(', ')}`);
+      await fetchGames(); // Refresh the games list
+      setSnackbar({ open: true, message: `Successfully generated ${generatedGames.length} sample games.`, severity: 'success' });
+    } catch (error) {
+      console.error("Error generating sample games:", error);
+      setSnackbar({ open: true, message: `Error generating sample games: ${error.message}`, severity: 'error' });
+    } finally {
+      setGeneratingSamples(false);
     }
   };
 
@@ -77,18 +100,21 @@ const Games = () => {
     let ongoing = 0;
     let blackWins = 0;
     let whiteWins = 0;
+    let draws = 0;
 
     leafMoves.forEach(id => {
       const move = moves[id];
       if (move.isEndGame) {
         if (move.winner === 'black') blackWins++;
-        if (move.winner === 'white') whiteWins++;
+        else if (move.winner === 'white') whiteWins++;
+        else if (move.winner === 'draw') draws++;
+        else ongoing++; // 'unfinished' games are counted as ongoing
       } else {
         ongoing++;
       }
     });
 
-    return { totalParallel, ongoing, blackWins, whiteWins };
+    return { totalParallel, ongoing, blackWins, whiteWins, draws };
   };
 
   const getFormattedDate = (timestamp) => {
@@ -101,6 +127,17 @@ const Games = () => {
       <Typography variant="h4" gutterBottom>
         Chess Games
       </Typography>
+      {import.meta.env.DEV && (
+        <Button 
+          onClick={handleGenerateSampleGames} 
+          variant="contained" 
+          color="secondary" 
+          sx={{ marginBottom: 2 }}
+          disabled={generatingSamples}
+        >
+          {generatingSamples ? 'Generating...' : 'Generate Sample Games'}
+        </Button>
+      )}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="chess games table">
           <TableHead>
@@ -121,12 +158,11 @@ const Games = () => {
                   key={game.id}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   hover
-                  component={Link}
-                  to={`/game/${game.id}`}
-                  style={{ textDecoration: 'none' }}
                 >
                   <TableCell component="th" scope="row">
-                    {game.id}
+                    <Link to={`/game/${game.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      {game.id}
+                    </Link>
                   </TableCell>
                   <TableCell align="right">{stats.totalParallel}</TableCell>
                   <TableCell align="right">{stats.ongoing}</TableCell>
@@ -139,8 +175,8 @@ const Games = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      {loading && <CircularProgress sx={{ display: 'block', margin: 'auto', marginTop: 2 }} />}
-      {hasMore && !loading && (
+      {(loading || generatingSamples) && <CircularProgress sx={{ display: 'block', margin: 'auto', marginTop: 2 }} />}
+      {hasMore && !loading && !generatingSamples && (
         <Button 
           onClick={loadMore} 
           fullWidth 
@@ -150,6 +186,15 @@ const Games = () => {
           Load More
         </Button>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
