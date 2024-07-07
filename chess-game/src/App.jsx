@@ -6,7 +6,8 @@ import {
   IconButton,
   Snackbar,
   Toolbar,
-  Typography
+  Typography,
+  useMediaQuery
 } from '@mui/material';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import { Chess } from 'chess.js';
@@ -49,7 +50,7 @@ function App() {
   const [pendingMove, setPendingMove] = useState(null);
   const [isNewGame, setIsNewGame] = useState(false);
   const initializationRef = useRef(false);
-
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const handleResize = useCallback(() => {
     setWindowSize({
       width: window.innerWidth,
@@ -137,7 +138,7 @@ function App() {
       const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
       window.history.pushState({}, '', newUrl);
       setGameUrl(newUrl);
-      
+
       if (promptForNickname) {
         setIsNewGame(true);
         setOpenDialog(true);
@@ -266,7 +267,13 @@ function App() {
 
   return (
     <Router>
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        minHeight: '100vh',
+        width: '100vw',
+        overflow: 'hidden'
+      }}>
         <CssBaseline />
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar>
@@ -284,22 +291,27 @@ function App() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <DrawerMenu open={drawerOpen} handleDrawerClose={handleDrawerClose} />
-        <Box component="main" sx={{
-          flexGrow: 1,
-          p: 3,
-          width: '100%',
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          marginLeft: 0,
+        <Box sx={{ 
+          flexGrow: 1, 
+          display: 'flex', 
+          position: 'relative',
+          pt: `${theme.mixins.toolbar.minHeight}px`
         }}>
-          <Toolbar />
-          <Box sx={{
+          <DrawerMenu 
+            open={drawerOpen} 
+            handleDrawerClose={handleDrawerClose}
+            drawerWidth={isMobile ? '100%' : 240}
+          />
+          <Box component="main" sx={{
+            flexGrow: 1,
             display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             justifyContent: 'center',
             width: '100%',
+            height: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
+            overflow: 'auto',
+            p: 2,
           }}>
             <Routes>
               <Route path="/" element={

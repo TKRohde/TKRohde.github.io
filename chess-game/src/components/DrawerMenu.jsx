@@ -1,22 +1,24 @@
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import GamesIcon from '@mui/icons-material/Games';
+import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import {
-    Box,
-    Drawer,
-    IconButton,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  useTheme
 } from '@mui/material';
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-const drawerWidth = 240;
+const DrawerMenu = ({ open, handleDrawerClose, drawerWidth }) => {
+  const theme = useTheme();
 
-const DrawerMenu = ({ open, handleDrawerClose }) => {
   return (
     <Drawer
       sx={{
@@ -25,11 +27,17 @@ const DrawerMenu = ({ open, handleDrawerClose }) => {
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
+          top: `${theme.mixins.toolbar.minHeight}px`,
+          height: `calc(100% - ${theme.mixins.toolbar.minHeight}px)`,
         },
       }}
-      variant="persistent"
+      variant="temporary"
       anchor="left"
       open={open}
+      onClose={handleDrawerClose}
+      ModalProps={{
+        keepMounted: true, // Better open performance on mobile.
+      }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
         <IconButton onClick={handleDrawerClose}>
@@ -38,7 +46,7 @@ const DrawerMenu = ({ open, handleDrawerClose }) => {
       </Box>
       <List>
         {[
-          { text: 'Home', icon: <GamesIcon />, path: '/' },
+          { text: 'Home', icon: <HomeIcon />, path: '/' },
           { text: 'Games', icon: <GamesIcon />, path: '/games' },
           { text: 'Stats', icon: <BarChartIcon />, path: '/stats' },
           { text: 'About', icon: <InfoIcon />, path: '/about' }
