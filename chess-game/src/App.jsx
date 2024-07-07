@@ -3,6 +3,7 @@ import {
   AppBar,
   Box,
   CssBaseline,
+  GlobalStyles,
   IconButton,
   Snackbar,
   Toolbar,
@@ -265,6 +266,16 @@ function App() {
     setDrawerOpen(false);
   };
 
+  const globalStyles = (
+    <GlobalStyles
+      styles={{
+        '& .MuiButtonBase-root:focus': {
+          outline: 'none',
+        },
+      }}
+    />
+  );
+
   return (
     <Router>
       <Box sx={{ 
@@ -275,6 +286,7 @@ function App() {
         overflow: 'hidden'
       }}>
         <CssBaseline />
+        {globalStyles}
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar>
             <IconButton
