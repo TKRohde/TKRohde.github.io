@@ -48,7 +48,23 @@ const GameTree = () => {
     return JSON.stringify(move);
   };
 
-  const buildMoveTree = (moves) => {
+  const generateBranchName = (moveCount) => {
+    const descriptors = [
+      "Bold", "Cautious", "Aggressive", "Defensive", "Surprising",
+      "Classical", "Modern", "Unorthodox", "Positional", "Tactical",
+      "Kingside", "Queenside", "Central", "Flank", "Counterattack"
+    ];
+    const pieces = ["Pawn", "Knight", "Bishop", "Rook", "Queen", "King"];
+    const actions = ["Advance", "Sacrifice", "Exchange", "Maneuver", "Development"];
+
+    const descriptor = descriptors[Math.floor(Math.random() * descriptors.length)];
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+
+    return `${descriptor} ${piece} ${action} (Move ${moveCount})`;
+  };
+
+  const buildGameTree = (moves) => {
     const moveTree = {};
     let rootNode = null;
 
@@ -77,21 +93,51 @@ const GameTree = () => {
     return rootNode;
   };
 
-  const renderMoveTree = (node, depth = 0) => {
+  const renderGameTree = (node, moveCount = 0, isFirstBranch = true) => {
     if (!node) return null;
 
-    let label;
-    if (depth === 0) {
-      label = "Starting Position";
-    } else {
-      const moveNumber = Math.floor((depth + 1) / 2);
-      const isWhiteMove = depth % 2 !== 0;
-      const moveName = getMoveName(node.move);
-      const moveNotation = isWhiteMove 
-        ? `${moveNumber}. ${moveName}` 
-        : `${moveNumber}... ${moveName}`;
-      label = `${moveNotation} (${node.nickname || 'Anonymous'})`;
-    }
+    const renderMoveSequence = (currentNode) => {
+      let moves = [];
+      let current = currentNode;
+      let currentMoveCount = moveCount;
+
+      while (current && current.children.length <= 1) {
+        if (current.move) {  // Skip the initial position
+          currentMoveCount++;
+          const moveName = getMoveName(current.move);
+          const moveNumber = Math.ceil(currentMoveCount / 2);
+          const isWhiteMove = currentMoveCount % 2 !== 0;
+          moves.push(`${moveNumber}${isWhiteMove ? '.' : '...'} ${moveName} (${current.nickname || 'Anonymous'})`);
+        }
+        if (current.children.length === 0) break;
+        current = current.children[0];
+      }
+
+      return {
+        moveSequence: (
+          <Box>
+            <Typography variant="body2">{moves.join(', ')}</Typography>
+            {current && current.children.length > 0 && (
+              <TreeView
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}
+              >
+                {current.children.map((child, index) => renderGameTree(child, currentMoveCount, false))}
+              </TreeView>
+            )}
+            {current && current.isEndGame && (
+              <Typography variant="caption" color="error">
+                Game Over - {current.winner === 'white' ? 'White' : current.winner === 'black' ? 'Black' : 'Draw'}
+              </Typography>
+            )}
+          </Box>
+        ),
+        finalMoveCount: currentMoveCount
+      };
+    };
+
+    const { moveSequence, finalMoveCount } = renderMoveSequence(node);
+    const branchName = isFirstBranch ? "Main Line" : generateBranchName(Math.ceil(finalMoveCount / 2));
 
     return (
       <TreeItem
@@ -99,42 +145,37 @@ const GameTree = () => {
         nodeId={node.id}
         label={
           <Box>
-            <Typography>{label}</Typography>
-            {node.winner && (
-              <Typography variant="caption" color="error">
-                Game Over - {node.winner === 'white' ? 'White' : 'Black'} wins
-              </Typography>
-            )}
+            <Typography variant="subtitle1">
+              {branchName}
+            </Typography>
+            {moveSequence}
           </Box>
         }
-      >
-        {node.children.map((child, index) => renderMoveTree(child, depth + 1))}
-      </TreeItem>
+      />
     );
   };
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
-  const moveTree = gameData ? buildMoveTree(gameData.moves) : null;
+  const gameTree = gameData ? buildGameTree(gameData.moves) : null;
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 800, margin: 'auto' }}>
+    <Box sx={{ width: '100%', maxWidth: 800, margin: 'auto', height: '80vh', display: 'flex', flexDirection: 'column' }}>
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
         <Typography variant="h4" gutterBottom>Game Tree for ID: {gameId}</Typography>
         <Typography variant="body1">
-          This tree shows all possible game variations starting from the initial position.
-          Each node represents a move, and you can expand nodes to see subsequent moves.
+          This tree shows the game progression. Each node represents a sequence of moves until a branching point or the end of a game.
         </Typography>
       </Paper>
-      {moveTree ? (
-        <Paper elevation={3} sx={{ p: 3 }}>
+      {gameTree ? (
+        <Paper elevation={3} sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
           <TreeView
             defaultCollapseIcon={<ExpandMoreIcon />}
             defaultExpandIcon={<ChevronRightIcon />}
-            defaultExpanded={[moveTree.id]}
+            defaultExpanded={[gameTree.id]}
           >
-            {renderMoveTree(moveTree)}
+            {renderGameTree(gameTree)}
           </TreeView>
         </Paper>
       ) : (
