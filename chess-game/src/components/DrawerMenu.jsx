@@ -1,4 +1,6 @@
 import BarChartIcon from '@mui/icons-material/BarChart';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import GamesIcon from '@mui/icons-material/Games';
 import HomeIcon from '@mui/icons-material/Home';
@@ -16,7 +18,7 @@ import {
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-const DrawerMenu = ({ open, handleDrawerClose, drawerWidth }) => {
+const DrawerMenu = ({ open, handleDrawerClose, drawerWidth, toggleColorMode }) => {
   const theme = useTheme();
 
   return (
@@ -58,6 +60,18 @@ const DrawerMenu = ({ open, handleDrawerClose, drawerWidth }) => {
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
+      </List>
+      <Box sx={{ flexGrow: 1 }} />
+      <List>
+        <ListItem>
+          <ListItemIcon>
+            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </ListItemIcon>
+          <ListItemText primary={`${theme.palette.mode.charAt(0).toUpperCase() + theme.palette.mode.slice(1)} mode`} />
+          <IconButton onClick={toggleColorMode} color="inherit">
+            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+        </ListItem>
       </List>
     </Drawer>
   );

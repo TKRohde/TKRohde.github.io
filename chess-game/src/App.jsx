@@ -29,8 +29,6 @@ import { encodeGameState, generateId } from './utils/urlEncoder';
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
 function App() {
-  const theme = useTheme();
-  const colorMode = React.useContext(ColorModeContext);
   const [chess, setChess] = useState(null);
   const [gameId, setGameId] = useState(null);
   const [moveId, setMoveId] = useState(null);
@@ -51,7 +49,7 @@ function App() {
   const [pendingMove, setPendingMove] = useState(null);
   const [isNewGame, setIsNewGame] = useState(false);
   const initializationRef = useRef(false);
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const handleResize = useCallback(() => {
     setWindowSize({
       width: window.innerWidth,
@@ -59,6 +57,10 @@ function App() {
     });
   }, []);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const colorMode = React.useContext(ColorModeContext);
+  
   useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -313,6 +315,7 @@ function App() {
             open={drawerOpen} 
             handleDrawerClose={handleDrawerClose}
             drawerWidth={isMobile ? '100%' : 240}
+            toggleColorMode={colorMode.toggleColorMode}
           />
           <Box component="main" sx={{
             flexGrow: 1,
@@ -329,7 +332,6 @@ function App() {
               <Route path="/" element={
                 <ChessGameContent
                   theme={theme}
-                  colorMode={colorMode}
                   chess={chess}
                   gameStatus={gameStatus}
                   handleMove={handleMove}

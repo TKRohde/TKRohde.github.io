@@ -1,5 +1,3 @@
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { Box, Button, IconButton, Typography, useMediaQuery } from '@mui/material';
@@ -10,7 +8,6 @@ import GameStatus from './GameStatus';
 
 const ChessGameContent = ({ 
   theme, 
-  colorMode, 
   chess, 
   gameStatus, 
   handleMove, 
@@ -30,12 +27,9 @@ const ChessGameContent = ({
       width: '100%',
       maxWidth: 'md',
       mx: 'auto',
-
-      pt: { xs: 3, sm: 4 }, // Added top padding to prevent title clipping
+      pt: { xs: 3, sm: 4 },
       boxSizing: 'border-box',
     }}>
-
-
       <Typography variant="body1" gutterBottom sx={{ 
         textAlign: 'center', 
         mb: { xs: 1, sm: 2 },
@@ -43,29 +37,6 @@ const ChessGameContent = ({
       }}>
         Make your move on the board below. After each move, a new URL will be generated and copied to your clipboard. Share this URL with your opponent, or tweet it, to continue the game!
       </Typography>
-
-      <Box
-        sx={{
-          display: 'flex',
-          width: '100%',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: 'background.default',
-          color: 'text.primary',
-          borderRadius: 1,
-          p: { xs: 1, sm: 2 },
-          mb: { xs: 1, sm: 2 }
-        }}
-      >
-        {theme.palette.mode} mode
-        <IconButton
-          sx={{ ml: 1 }}
-          onClick={colorMode.toggleColorMode}
-          color="inherit"
-        >
-          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-        </IconButton>
-      </Box>
 
       {chess && (
         <>
