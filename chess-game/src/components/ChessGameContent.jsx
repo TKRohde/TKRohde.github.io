@@ -30,16 +30,11 @@ const ChessGameContent = ({
       width: '100%',
       maxWidth: 'md',
       mx: 'auto',
-      px: { xs: 1, sm: 2 },
+
+      pt: { xs: 3, sm: 4 }, // Added top padding to prevent title clipping
       boxSizing: 'border-box',
     }}>
-      <Typography variant="h2" component="h1" gutterBottom sx={{ 
-        fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' },
-        textAlign: 'center',
-        mb: { xs: 1, sm: 2 }
-      }}>
-        Chess Anywhere: The URL-Encoded Chess Game
-      </Typography>
+
 
       <Typography variant="body1" gutterBottom sx={{ 
         textAlign: 'center', 
