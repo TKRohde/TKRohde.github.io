@@ -6,22 +6,22 @@ import React from 'react';
 import ChessBoard from './ChessBoard';
 import GameStatus from './GameStatus';
 
-const ChessGameContent = ({ 
-  theme, 
-  chess, 
-  gameStatus, 
-  handleMove, 
-  boardDisabled, 
-  copyUrlToClipboard, 
-  startNewGame 
+const ChessGameContent = ({
+  theme,
+  chess,
+  gameStatus,
+  handleMove,
+  boardDisabled,
+  copyUrlToClipboard,
+  startNewGame
 }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
       justifyContent: 'center',
       minHeight: `calc(100vh - ${theme.mixins.toolbar.minHeight}px)`,
       width: '100%',
@@ -30,8 +30,8 @@ const ChessGameContent = ({
       pt: { xs: 3, sm: 4 },
       boxSizing: 'border-box',
     }}>
-      <Typography variant="body1" gutterBottom sx={{ 
-        textAlign: 'center', 
+      <Typography variant="body1" gutterBottom sx={{
+        textAlign: 'center',
         mb: { xs: 1, sm: 2 },
         fontSize: { xs: '0.875rem', sm: '1rem' }
       }}>
@@ -52,17 +52,18 @@ const ChessGameContent = ({
             />
           </Box>
 
-          <Box sx={{ 
-            mt: { xs: 1, sm: 2 }, 
-            display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' }, 
-            justifyContent: 'center', 
+          <Box sx={{
+            mt: { xs: 1, sm: 2 },
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'center',
             gap: { xs: 1, sm: 2 },
             width: '100%',
             maxWidth: { xs: '100%', sm: '400px' }
           }}>
             <Button
               variant="contained"
+              color="primary"
               startIcon={<ContentCopyIcon />}
               onClick={copyUrlToClipboard}
               fullWidth

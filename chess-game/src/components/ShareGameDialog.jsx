@@ -19,6 +19,7 @@ const ShareGameDialog = ({ open, onClose, nickname, onNicknameChange, onTweet, i
             ? "You've started a new game! Enter your nickname and share the game."
             : "You've made a move! Enter your nickname and share the updated game state."
           }
+          On mobile devices, you may need to use the "Copy Game URL" button on the main screen to copy the link.
         </DialogContentText>
         <TextField
           autoFocus

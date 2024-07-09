@@ -208,14 +208,14 @@ function App() {
     setOpenDialog(false);
     setNickname('');
 
-    navigator.clipboard.writeText(gameUrl).then(() => {
+    try {
+      await navigator.clipboard.writeText(gameUrl);
       setSnackbarMessage('Game URL copied to clipboard!');
-      setShowSnackbar(true);
-    }, (err) => {
-      console.error('Could not copy URL: ', err);
-      setSnackbarMessage('Failed to copy URL. Please copy it manually.');
-      setShowSnackbar(true);
-    });
+    } catch (err) {
+      console.error('Could not copy URL automatically: ', err);
+      setSnackbarMessage('Use the "Copy Game URL" button to copy the link.');
+    }
+    setShowSnackbar(true);
   };
 
   const handleTweet = () => {
@@ -236,11 +236,11 @@ function App() {
 
   const copyUrlToClipboard = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      setSnackbarMessage('URL copied to clipboard!');
+      setSnackbarMessage('Game URL successfully copied to clipboard!');
       setShowSnackbar(true);
     }, (err) => {
       console.error('Could not copy URL: ', err);
-      setSnackbarMessage('Failed to copy URL. Please copy it manually.');
+      setSnackbarMessage('Failed to copy URL. Please try again or copy manually from the address bar.');
       setShowSnackbar(true);
     });
   };
