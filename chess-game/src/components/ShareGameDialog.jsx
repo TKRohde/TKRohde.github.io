@@ -15,10 +15,9 @@ const ShareGameDialog = ({ open, onClose, nickname, onNicknameChange, onTweet, i
       <DialogTitle>{isNewGame ? 'New Game Started' : 'Share Your Move'}</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {isNewGame 
-            ? "You've started a new game! Enter your nickname and share the game."
-            : "You've made a move! Enter your nickname and share the updated game state."
-          }
+          {isNewGame
+            ? "🎉 You've started a new chess adventure! Ready to invite a challenger? "
+            : "♟️ Great move! Time to challenge someone to respond! "}
           On mobile devices, you may need to use the "Copy Game URL" button on the main screen to copy the link.
         </DialogContentText>
         <TextField

@@ -161,53 +161,52 @@ function App() {
     const newChess = new Chess(chess.fen());
     const result = newChess.move(move);
     if (result) {
-      setPendingMove({ chess: newChess, move });
+      const newMoveId = generateId();
+      const newEncodedState = encodeGameState(gameId, newMoveId, newChess.fen());
+      const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
+      
+      setGameUrl(newUrl);  // Update the gameUrl state
+      setPendingMove({ chess: newChess, move, newMoveId });
       setIsNewGame(false);
       setOpenDialog(true);
     }
   };
 
   const handleDialogClose = async () => {
-    if (pendingMove || isNewGame) {
-      if (pendingMove) {
-        const { chess: newChess, move } = pendingMove;
-        const newMoveId = generateId();
-
-        setChess(newChess);
-        setMoveId(newMoveId);
-        updateGameStatus(newChess);
-        setBoardDisabled(newChess.isGameOver());
-
-        // Update Firebase
-        const gameRef = doc(db, 'games', gameId);
-        await updateDoc(gameRef, {
-          [`moves.${newMoveId}`]: {
-            fen: newChess.fen(),
-            move: move,
-            timestamp: serverTimestamp(),
-            parentMoveId: moveId,
-            nickname: nickname || 'Anonymous'
-          }
-        });
-
-        const newEncodedState = encodeGameState(gameId, newMoveId, newChess.fen());
-        const newUrl = `${window.location.origin}${window.location.pathname}?game=${newEncodedState}`;
-        window.history.pushState({}, '', newUrl);
-        setGameUrl(newUrl);
-
-        if (newChess.isGameOver()) {
-          handleGameOver(newChess, gameId, newMoveId);
+    if (pendingMove) {
+      const { chess: newChess, move, newMoveId } = pendingMove;
+  
+      setChess(newChess);
+      setMoveId(newMoveId);
+      updateGameStatus(newChess);
+      setBoardDisabled(newChess.isGameOver());
+  
+      // Update Firebase
+      const gameRef = doc(db, 'games', gameId);
+      await updateDoc(gameRef, {
+        [`moves.${newMoveId}`]: {
+          fen: newChess.fen(),
+          move: move,
+          timestamp: serverTimestamp(),
+          parentMoveId: moveId,
+          nickname: nickname || 'Anonymous'
         }
-
-        setPendingMove(null);
+      });
+  
+      // The URL has already been updated in handleMove, so we don't need to update it here
+      window.history.pushState({}, '', gameUrl);
+  
+      if (newChess.isGameOver()) {
+        handleGameOver(newChess, gameId, newMoveId);
       }
-
-      setIsNewGame(false);
+  
+      setPendingMove(null);
     }
-
+  
     setOpenDialog(false);
     setNickname('');
-
+  
+    // Attempt to copy the updated URL
     try {
       await navigator.clipboard.writeText(gameUrl);
       setSnackbarMessage('Game URL copied to clipboard!');
@@ -219,7 +218,9 @@ function App() {
   };
 
   const handleTweet = () => {
-    const tweetText = encodeURIComponent(`I'm playing Chess Anywhere! Join my game: ${gameUrl} (My nickname: ${nickname})`);
+    const turnColor = chess.turn() === 'w' ? 'White' : 'Black';
+    const shortenedUrl = gameUrl.replace(/^https?:\/\//, ''); // Remove http:// or https://
+    const tweetText = encodeURIComponent(`🎉 Chess challenge! It's ${turnColor}'s turn. Your move! 🤔♟️ Play: ${shortenedUrl} (I'm ${nickname || 'Anonymous'}) #ChessAnywhere #URLChess`);
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
     handleDialogClose();
   };
@@ -234,16 +235,16 @@ function App() {
     setShowSnackbar(true);
   };
 
-  const copyUrlToClipboard = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setSnackbarMessage('Game URL successfully copied to clipboard!');
-      setShowSnackbar(true);
-    }, (err) => {
-      console.error('Could not copy URL: ', err);
-      setSnackbarMessage('Failed to copy URL. Please try again or copy manually from the address bar.');
-      setShowSnackbar(true);
-    });
-  };
+const copyUrlToClipboard = () => {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    setSnackbarMessage('Game URL successfully copied to clipboard!');
+    setShowSnackbar(true);
+  }, (err) => {
+    console.error('Could not copy URL: ', err);
+    setSnackbarMessage('Failed to copy URL. Please try again or copy manually from the address bar.');
+    setShowSnackbar(true);
+  });
+};
 
   useEffect(() => {
     const testFirebase = async () => {
